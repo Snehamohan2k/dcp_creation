@@ -19,8 +19,7 @@ function App() {
        const writableStreamMap = await fileHandleMap.createWritable();
        const writableStream = await fileHandle.createWritable();
 const fileData = [];
-const totalFiles = fileData.length; // total number of files to be uploaded
-  let filesUploaded = 0;
+
 await getFilePaths(files);
 
 async function getFilePaths(files, path ='') {
@@ -43,7 +42,7 @@ async function getFilePaths(files, path ='') {
       }
       const filePath = path ? `${path}/${fileName}` : fileName;
       console.log(fileName.split('.').pop());
-      const { uuid, name, hash, size} = await hashFile(file,filesUploaded,totalFiles);
+      const { uuid, name, hash, size} = await hashFile(file);
       fileData.push({ uuid, name, hash, size, type:newtype, path: filePath });
       
       setHashes(fileData);
@@ -66,7 +65,7 @@ async function getFilePaths(files, path ='') {
     await writableStreamMap.close();
   };
 
-  const hashFile = async (file,filesUploaded,totalFiles) => {
+  const hashFile = async (file) => {
 const type=file.type
     var sha1 = CryptoJS.algo.SHA1.create();
     var chunkSize = 1024 * 1024; // 1 MB
@@ -100,9 +99,7 @@ const type=file.type
       await readNextChunk(start, end);
       offset = end;
     }
-    filesUploaded++; // increment filesUploaded counter
-    // const overallProgress = (filesUploaded / totalFiles) * 100;
-    //   setUploadProgress(overallProgress);
+
     hash = sha1.finalize().toString(CryptoJS.enc.Base64);
     console.log(hash);
     const uuid = uuidv4();
