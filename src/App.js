@@ -1,12 +1,10 @@
-//One progress bar
 import React, { useState } from "react";
 import mime from 'mime';
 import createXml from "./component/createXml";
 import createSecondXml from './component/createSecondXml'
 import { v4 as uuidv4 } from 'uuid';
 import CryptoJS from 'crypto-js';
-import { Progress } from 'antd';
-
+import VerifyProgress from "./component/VerifyProgress";
 function App() {
   const [hashes, setHashes] = useState([]);
   const [uploadProgress, setUploadProgress] = useState(0); 
@@ -24,8 +22,6 @@ await getFilePaths(files);
 
 async function getFilePaths(files, path ='') {
   const files2 = await files.values();
-   // initialize filesUploaded counter
-
   for await (const entry of files2) {
     if (entry.kind === 'file') {
       const file = await entry.getFile();
@@ -81,12 +77,21 @@ const type=file.type
          
           resolve();
         };
+        
         const progress = ((start + chunkSize) / file.size) * 100;
-        console.log("Progress",progress);
-        setUploadProgress((prev) => ({
-                    ...prev,
-                    [file.name]: progress,
-                  }));
+        // console.log(file.estimated);
+         const estimatedTime = Math.ceil((file.size - (start + chunkSize)) / chunkSize) ;
+         console.log("Progress",progress);
+         console.log(estimatedTime);
+         setUploadProgress((prev) => ({
+                     ...prev,
+                     [file.name]: {
+                       progress:progress,
+                       estimatedTime: estimatedTime,
+                     }
+                   }));
+     
+        
        // setUploadProgress(progress)
         reader.onerror = reject;
         reader.readAsArrayBuffer(fileSlice);
@@ -111,17 +116,12 @@ const type=file.type
   return (
     <div>
     <button onClick={handleUpload}> Choose a file</button>
-    {hashes.map(file => (
-      <div key={file.uuid}>
-        <br></br>
-        <span>{file.name}</span>
-        <Progress percent={uploadProgress[file.name]} />
-        <span>Verified</span>
-        
-      </div>
-    ))}
-   
-  </div>
+    <div>
+    <VerifyProgress uploadProgress={uploadProgress} />
+        </div>
+    </div>
+      
+     
   );
       }
 export default App;  
